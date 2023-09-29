@@ -8,7 +8,7 @@ class JSCodegen {
         return this.Program(exp)
     }
 
-    Program(exp){
+    Program(exp) {
         return exp.body.map(expr => this.gen(expr)).join('\n');
     }
 
@@ -27,17 +27,23 @@ class JSCodegen {
         return `"${exp.value}"`
     }
 
-    Identifier(exp){
+    Identifier(exp) {
         return exp.name;
     }
 
-    VariableDeclaration(exp){
+    VariableDeclaration(exp) {
         let {id, init} = exp.declarations[0];
         return `let ${this.gen(id)} = ${this.gen(init)};`;
     }
 
-    AssignmentExpression(exp){
+    AssignmentExpression(exp) {
         return `${this.gen(exp.left)} ${exp.operator} ${this.gen(exp.right)}`;
+    }
+
+    CallExpression(exp) {
+        const callee = this.gen(exp.callee)
+        const args = exp.arguments.map(arg => this.gen(arg)).join(', ');
+        return `${callee}(${args})`;
     }
 
     BlockStatement(exp) {
@@ -47,7 +53,7 @@ class JSCodegen {
 
         this._currentIndent -= this._indent
 
-        result+= this._ind() + '}'
+        result += this._ind() + '}'
         return result
     }
 
@@ -55,7 +61,7 @@ class JSCodegen {
         return `${this.gen(exp.expression)};`;
     }
 
-    _ind(){
+    _ind() {
         return ' '.repeat(this._currentIndent)
     }
 }

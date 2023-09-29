@@ -18,10 +18,14 @@ class EvaMPP {
     }
 
     saveToFile(filename, code) {
-        fs.writeFileSync(filename, code, 'utf-8')
+        const out = `
+const {print} = require("./src/runtime");
+${code}
+        `
+        fs.writeFileSync(filename, out, 'utf-8')
     }
 
-    genProgram(programBlock){
+    genProgram(programBlock) {
         const [_tag, ...expressions] = programBlock;
 
         const body = []
@@ -49,10 +53,10 @@ class EvaMPP {
             }
         }
 
-        if (this._isVariableName(exp)){
+        if (this._isVariableName(exp)) {
             return {
                 type: 'Identifier',
-                name: exp
+                name: this._toVariableName(exp)
             }
         }
 
@@ -79,7 +83,7 @@ class EvaMPP {
         }
 
         if (exp[0] === "begin") {
-            const [_tag, ... expressions] = exp;
+            const [_tag, ...expressions] = exp;
             const body = [];
             expressions.forEach(expr => {
                 body.push(this._toStatement(this.gen(expr)))
@@ -90,34 +94,47 @@ class EvaMPP {
             }
         }
 
+        if (Array.isArray(exp)) {
+            const fnName = this._toVariableName(exp[0])
+            const callee = this.gen(fnName)
+            const args = exp.slice(1).map(arg => this.gen(arg))
+            return {
+                type: 'CallExpression',
+                callee,
+                arguments: args
+            }
+        }
+
         throw `Unexpected expression ${JSON.stringify(exp)}.`
     }
 
-    _isVariableName(exp){
+    _isVariableName(exp) {
         return typeof exp === "string" && /^[+\-*/<>=a-zA-Z0-9_\.]+$/.test(exp);
     }
 
-    _toVariableName(exp){
+    _toVariableName(exp) {
         return this._toJSName(exp);
     }
 
-    _toJSName(name){
+    _toJSName(name) {
         return name.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase())
     }
 
-    _isNumber(exp){
+    _isNumber(exp) {
         return typeof exp == "number"
     }
 
-    _isString(exp){
+    _isString(exp) {
         return typeof exp === "string" && exp[0] === '"' && exp.slice(-1) === '"'
     }
 
-    _toStatement(expression){
+    _toStatement(expression) {
         switch (expression.type) {
             case "NumericLiteral":
             case "StringLiteral":
             case "AssignmentExpression":
+            case "Identifier":
+            case "CallExpression":
                 return {
                     type: "ExpressionStatement",
                     expression
