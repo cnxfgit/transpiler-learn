@@ -3,9 +3,10 @@ const {EvaMPP} = require("../src/transplier/EvaMPP")
 const eva = new EvaMPP()
 
 const {ast, target} = eva.compile(`
-    42
-    "hello"
-    (begin "hello" "world")
+    (var user-name 43)
+    //(print "x=" x)
+    (set user-name 100)
+    //(print "x=" x)
 `)
 console.log("\n-----------------------------------")
 console.log(" 1. Compiled AST:\n")

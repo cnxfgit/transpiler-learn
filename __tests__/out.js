@@ -1,6 +1,2 @@
-42;
-"hello";
-{
-  "hello";
-  "world";
-}
+let userName = 43;
+userName = 100;

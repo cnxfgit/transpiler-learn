@@ -27,6 +27,19 @@ class JSCodegen {
         return `"${exp.value}"`
     }
 
+    Identifier(exp){
+        return exp.name;
+    }
+
+    VariableDeclaration(exp){
+        let {id, init} = exp.declarations[0];
+        return `let ${this.gen(id)} = ${this.gen(init)};`;
+    }
+
+    AssignmentExpression(exp){
+        return `${this.gen(exp.left)} ${exp.operator} ${this.gen(exp.right)}`;
+    }
+
     BlockStatement(exp) {
         this._currentIndent += this._indent
 
