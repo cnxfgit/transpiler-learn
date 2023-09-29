@@ -59,6 +59,18 @@ class JSCodegen {
         return `(${this.gen(exp.left)} ${operator} ${this.gen(exp.right)})`;
     }
 
+    IfStatement(exp){
+        const test = this.gen(exp.test);
+        const consequent = this.gen(exp.consequent);
+        const alternate = exp.alternate != null ?
+            ` else ${this.gen(exp.alternate)}` : '';
+        return `if ${test} ${consequent} ${alternate}`;
+    }
+
+    WhileStatement(exp){
+        return `while (${this.gen(exp.test)}) ${this.gen(exp.body)}`;
+    }
+
     LogicalExpression(exp) {
         return `(${this.gen(exp.left)} ${exp.operator} ${this.gen(exp.right)})`;
     }

@@ -138,6 +138,23 @@ ${code}
             }
         }
 
+        if (exp[0] === "if") {
+            return {
+                type: 'IfStatement',
+                test: this.gen(exp[1]),
+                consequent: this._toStatement(this.gen(exp[2])),
+                alternate: this._toStatement(this.gen(exp[3])),
+            }
+        }
+
+        if (exp[0] === "while") {
+            return {
+                type: 'WhileStatement',
+                test: this.gen(exp[1]),
+                body: this._toStatement(this.gen(exp[2])),
+            }
+        }
+
         if (Array.isArray(exp)) {
             const fnName = this._toVariableName(exp[0])
             const callee = this.gen(fnName)
@@ -189,7 +206,7 @@ ${code}
         return exp[0] === 'or' || exp[0] === 'and';
     }
 
-    _isUnary(exp){
+    _isUnary(exp) {
         if (exp.length !== 2) {
             return false;
         }

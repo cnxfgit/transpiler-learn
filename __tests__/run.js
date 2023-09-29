@@ -3,11 +3,8 @@ const {EvaMPP} = require("../src/transplier/EvaMPP")
 const eva = new EvaMPP()
 
 const {ast, target} = eva.compile(`
-    (var x 32)
-    (var y (* 5 (+ x 10)))
-    (print (- y))
-    (and (> x 0) (< x 100))
-    (print (not x))
+    (def square (x) (x * x))
+    (square 2)
 `)
 console.log("\n-----------------------------------")
 console.log(" 1. Compiled AST:\n")
