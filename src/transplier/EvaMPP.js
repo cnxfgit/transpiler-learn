@@ -3,6 +3,7 @@ const evaParser = require("../parser/evaParser.js")
 const {JSCodegen} = require("../codegen/JSCodegen.js")
 
 const fs = require("fs")
+const {fips} = require("crypto");
 
 const jsCodegen = new JSCodegen({indent: 2})
 
@@ -19,7 +20,7 @@ class EvaMPP {
 
     saveToFile(filename, code) {
         const out = `
-const {print} = require("./src/runtime");
+const {print,spawn} = require("./src/runtime");
 ${code}
         `
         fs.writeFileSync(filename, out, 'utf-8')
@@ -155,6 +156,37 @@ ${code}
             }
         }
 
+        if (exp[0] === "def") {
+            const id = this.gen(this._toVariableName(exp[1]));
+            const params = exp[2].map(param => this.gen(param));
+            let bodyExp = exp[3];
+
+            if (!this._hasBlock(bodyExp)) {
+                bodyExp = ['begin', bodyExp]
+            }
+
+            const last = bodyExp[bodyExp.length - 1];
+            if (!this._isStatement(last) && last[0] !== "return") {
+                bodyExp[bodyExp.length - 1] = ["return", last]
+            }
+
+            const body = this.gen(bodyExp)
+
+            return {
+                type: 'FunctionDeclaration',
+                id,
+                params,
+                body
+            }
+        }
+
+        if (exp[0] === 'return') {
+            return {
+                type: 'ReturnStatement',
+                argument: this.gen(exp[1])
+            }
+        }
+
         if (Array.isArray(exp)) {
             const fnName = this._toVariableName(exp[0])
             const callee = this.gen(fnName)
@@ -175,6 +207,19 @@ ${code}
 
     _toVariableName(exp) {
         return this._toJSName(exp);
+    }
+
+    _hasBlock(exp) {
+        return exp[0] === 'begin';
+    }
+
+    _isStatement(exp) {
+        return (
+            exp[0] === "begin" ||
+            exp[0] === "if" ||
+            exp[0] === "while" ||
+            exp[0] === "var"
+        )
     }
 
     _toJSName(name) {

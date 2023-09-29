@@ -71,6 +71,17 @@ class JSCodegen {
         return `while (${this.gen(exp.test)}) ${this.gen(exp.body)}`;
     }
 
+    ReturnStatement(exp){
+        return `return ${this.gen(exp.argument)};`;
+    }
+
+    FunctionDeclaration(exp){
+        const id = this.gen(exp.id);
+        const params = exp.params.map(param => this.gen(param)).join(', ');
+        const body = this.gen(exp.body);
+        return `\nfunction ${id}(${params}) ${body}\n`
+    }
+
     LogicalExpression(exp) {
         return `(${this.gen(exp.left)} ${exp.operator} ${this.gen(exp.right)})`;
     }

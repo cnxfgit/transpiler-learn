@@ -1,8 +1,13 @@
 
-const {print} = require("./src/runtime");
-let i = 5;
-while ((i > 0)) {
-  print("i=", i);
-  i = (i - 1);
+const {print,spawn} = require("./src/runtime");
+
+function handle(id) {
+  print(id, 1);
+  return print(id, 2);
 }
+
+handle("x");
+handle("y");
+spawn(handle, "x");
+spawn(handle, "y");
         
