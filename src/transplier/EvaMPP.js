@@ -1,12 +1,15 @@
+const evaParser = require("../parser/evaParser.js")
+
 const {JSCodegen} = require("../codegen/JSCodegen.js")
+
+const fs = require("fs")
 
 const jsCodegen = new JSCodegen({indent: 2})
 
 class EvaMPP {
     compile(program) {
-        // const evaAST = evaParser.parse(program)
+        const evaAST = evaParser.parse(`(begin ${program})`)
 
-        const evaAST = ['begin', program]
         const jsAST = this.genProgram(evaAST)
         const target = jsCodegen.generate(jsAST)
 
@@ -15,7 +18,7 @@ class EvaMPP {
     }
 
     saveToFile(filename, code) {
-
+        fs.writeFileSync(filename, code, 'utf-8')
     }
 
     genProgram(programBlock){
