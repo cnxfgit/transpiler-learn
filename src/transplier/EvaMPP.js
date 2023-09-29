@@ -82,6 +82,50 @@ ${code}
             }
         }
 
+        if (this._isUnary(exp)) {
+            let operator = exp[0];
+            if (operator === "not") {
+                operator = "!"
+            }
+
+            return {
+                type: "UnaryExpression",
+                operator,
+                argument: this.gen(exp[1])
+            }
+        }
+
+        if (this._isBinary(exp)) {
+            return {
+                type: 'BinaryExpression',
+                left: this.gen(exp[1]),
+                operator: exp[0],
+                right: this.gen(exp[2])
+            }
+        }
+
+        if (this._isLogicalBinary(exp)) {
+            let operator;
+
+            switch (exp[0]) {
+                case 'or':
+                    operator = '||'
+                    break
+                case 'and':
+                    operator = '&&'
+                    break
+                default:
+                    throw  `Unknown logical operator ${exp[0]}.`;
+            }
+
+            return {
+                type: 'LogicalExpression',
+                left: this.gen(exp[1]),
+                operator,
+                right: this.gen(exp[2])
+            }
+        }
+
         if (exp[0] === "begin") {
             const [_tag, ...expressions] = exp;
             const body = [];
@@ -120,6 +164,38 @@ ${code}
         return name.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase())
     }
 
+    _isBinary(exp) {
+        if (exp.length !== 3) {
+            return false;
+        }
+        return (
+            exp[0] === "+" ||
+            exp[0] === "-" ||
+            exp[0] === "*" ||
+            exp[0] === "/" ||
+            exp[0] === "==" ||
+            exp[0] === "!=" ||
+            exp[0] === ">" ||
+            exp[0] === "<" ||
+            exp[0] === "<=" ||
+            exp[0] === ">="
+        );
+    }
+
+    _isLogicalBinary(exp) {
+        if (exp.length !== 3) {
+            return false;
+        }
+        return exp[0] === 'or' || exp[0] === 'and';
+    }
+
+    _isUnary(exp){
+        if (exp.length !== 2) {
+            return false;
+        }
+        return exp[0] === "not" || exp[0] === "-"
+    }
+
     _isNumber(exp) {
         return typeof exp == "number"
     }
@@ -135,6 +211,9 @@ ${code}
             case "AssignmentExpression":
             case "Identifier":
             case "CallExpression":
+            case "BinaryExpression":
+            case "LogicalExpression":
+            case "UnaryExpression":
                 return {
                     type: "ExpressionStatement",
                     expression

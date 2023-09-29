@@ -1,8 +1,8 @@
 
 const {print} = require("./src/runtime");
-let userName = "43";
-print("user-name =", userName);
-userName = 100;
-print("user-name =", userName);
-print(Number("1"));
+let x = 32;
+let y = (5 * (x + 10));
+print(-y);
+((x > 0) && (x < 100));
+print(!x);
         

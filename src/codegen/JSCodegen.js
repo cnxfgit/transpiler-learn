@@ -46,6 +46,27 @@ class JSCodegen {
         return `${callee}(${args})`;
     }
 
+    BinaryExpression(exp) {
+        let operator = exp.operator;
+        if (operator === "==") {
+            operator = "===";
+        }
+
+        if (operator === "!=") {
+            operator = "!==";
+        }
+
+        return `(${this.gen(exp.left)} ${operator} ${this.gen(exp.right)})`;
+    }
+
+    LogicalExpression(exp) {
+        return `(${this.gen(exp.left)} ${exp.operator} ${this.gen(exp.right)})`;
+    }
+
+    UnaryExpression(exp){
+        return `${exp.operator}${this.gen(exp.argument)}`;
+    }
+
     BlockStatement(exp) {
         this._currentIndent += this._indent
 
