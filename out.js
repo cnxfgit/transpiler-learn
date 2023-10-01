@@ -1,5 +1,5 @@
 
-const {print,spawn} = require("./src/runtime");
+const {print,spawn,scheduler,sleep} = require("./src/runtime");
 
 function handle(id) {
   print(id, 1);

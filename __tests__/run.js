@@ -4,8 +4,9 @@ const eva = new EvaMPP()
 
 const {ast, target} = eva.compile(`
     (def handle (id) 
-        (begin (print id 1)
-                (print id 2)))
+        (begin 
+            (print id 1)
+            (print id 2)))
     (handle "x")
     (handle "y")
     

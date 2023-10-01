@@ -3,7 +3,6 @@ const evaParser = require("../parser/evaParser.js")
 const {JSCodegen} = require("../codegen/JSCodegen.js")
 
 const fs = require("fs")
-const {fips} = require("crypto");
 
 const jsCodegen = new JSCodegen({indent: 2})
 
@@ -20,7 +19,7 @@ class EvaMPP {
 
     saveToFile(filename, code) {
         const out = `
-const {print,spawn} = require("./src/runtime");
+const {print,spawn,scheduler,sleep} = require("./src/runtime");
 ${code}
         `
         fs.writeFileSync(filename, out, 'utf-8')
