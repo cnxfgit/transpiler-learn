@@ -79,7 +79,13 @@ class JSCodegen {
         const id = this.gen(exp.id);
         const params = exp.params.map(param => this.gen(param)).join(', ');
         const body = this.gen(exp.body);
-        return `\nfunction ${id}(${params}) ${body}\n`
+        const async = exp.async ? 'async ' : '';
+        const generator = exp.generator ? '*' : '';
+        return `\n${async}function${generator} ${id}(${params}) ${body}\n`
+    }
+
+    YieldExpression(exp){
+        return `yield`
     }
 
     LogicalExpression(exp) {

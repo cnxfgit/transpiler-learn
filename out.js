@@ -6,8 +6,15 @@ function handle(id) {
   return print(id, 2);
 }
 
+
+async function* _handle(id) {
+  print(id, 1);
+  yield;
+  return print(id, 2);
+}
+
 handle("x");
 handle("y");
-spawn(handle, "x");
-spawn(handle, "y");
+spawn(_handle, "x");
+spawn(_handle, "y");
         
