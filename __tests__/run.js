@@ -3,15 +3,13 @@ const {EvaMPP} = require("../src/transplier/EvaMPP")
 const eva = new EvaMPP()
 
 const {ast, target} = eva.compile(`
-    (def handle (id) 
-        (begin 
-            (print id 1)
-            (print id 2)))
-    (handle "x")
-    (handle "y")
-    
-    (spawn handle "x")
-    (spawn handle "y")
+    (var data (list 1 2 3))
+    (idx data 0)
+    (print data (idx data 0))
+    (var z 3)
+    (var point (rec (x 1) (y 2) z))
+    (prop point x)
+    (print point (prop point x))
 `)
 console.log("\n-----------------------------------")
 console.log(" 1. Compiled AST:\n")

@@ -75,6 +75,27 @@ class JSCodegen {
         return `return ${this.gen(exp.argument)};`;
     }
 
+    ObjectExpression(exp){
+        const properties = exp.properties.map(prop => this.gen(prop));
+        return `{${properties.join(', ')}}`
+    }
+
+    ObjectProperty(exp){
+        return `${this.gen(exp.key)}: ${this.gen(exp.value)}`
+    }
+
+    ArrayExpression(exp){
+        const elements = exp.elements.map(element => this.gen(element));
+        return `[${elements.join(", ")}]`;
+    }
+
+    MemberExpression(exp){
+        if (exp.computed) {
+            return `${this.gen(exp.object)}[${this.gen(exp.property)}]`
+        }
+        return `${this.gen(exp.object)}.${this.gen(exp.property)}`
+    }
+
     FunctionDeclaration(exp){
         const id = this.gen(exp.id);
         const params = exp.params.map(param => this.gen(param)).join(', ');

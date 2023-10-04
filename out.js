@@ -1,20 +1,10 @@
 
 const {print,spawn,scheduler,sleep} = require("./src/runtime");
-
-function handle(id) {
-  print(id, 1);
-  return print(id, 2);
-}
-
-
-async function* _handle(id) {
-  print(id, 1);
-  yield;
-  return print(id, 2);
-}
-
-handle("x");
-handle("y");
-spawn(_handle, "x");
-spawn(_handle, "y");
+let data = [1, 2, 3];
+data[0];
+print(data, data[0]);
+let z = 3;
+let point = {x: 1, y: 2, z: z};
+point.x;
+print(point, point.x);
         

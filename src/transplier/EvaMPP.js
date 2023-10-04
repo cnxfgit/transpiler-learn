@@ -206,6 +206,56 @@ ${code}
             }
         }
 
+        if (exp[0] === 'list') {
+            const elements = exp.slice(1).map(element => this.gen(element));
+            return {
+                type: "ArrayExpression",
+                elements,
+            }
+        }
+
+        if (exp[0] === 'idx') {
+            return {
+                type: "MemberExpression",
+                computed: true,
+                object: this.gen(exp[1]),
+                property: this.gen(exp[2])
+            }
+        }
+
+        if (exp[0] === 'rec') {
+            const properties = exp.slice(1).map(entry => {
+                let key;
+                let value;
+
+                if (Array.isArray(entry)) {
+                    key = this.gen(entry[0])
+                    value = this.gen(entry[1])
+                } else {
+                    key = this.gen(entry)
+                    value = key
+                }
+
+                return {
+                    type: "ObjectProperty",
+                    key,
+                    value,
+                }
+            });
+            return {
+                type: "ObjectExpression",
+                properties,
+            }
+        }
+
+        if (exp[0] === "prop") {
+            return {
+                type: "MemberExpression",
+                object: this.gen(exp[1]),
+                property: this.gen(exp[2])
+            }
+        }
+
         if (Array.isArray(exp)) {
             const fnName = this._toVariableName(exp[0])
             const callee = this.gen(fnName)
@@ -320,6 +370,8 @@ ${code}
             case "LogicalExpression":
             case "UnaryExpression":
             case "YieldExpression":
+            case "ArrayExpression":
+            case "MemberExpression":
                 return {
                     type: "ExpressionStatement",
                     expression
