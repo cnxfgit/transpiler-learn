@@ -74,6 +74,10 @@ class JSTransform {
     }
 
     _createIfTest(checks) {
+        if (checks.length === 0) {
+            return null
+        }
+
         let ifCond = checks[0];
         let i = 1;
 
