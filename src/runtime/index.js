@@ -15,9 +15,12 @@ async function sleep(ms) {
     return scheduler.sleep(ms)
 }
 
+const NextMatch = {}
+
 module.exports = {
     print,
     spawn,
     scheduler,
     sleep,
+    NextMatch,
 }

@@ -75,6 +75,18 @@ class JSCodegen {
         return `return ${this.gen(exp.argument)};`;
     }
 
+    ThrowStatement(exp){
+        return `throw ${this.gen(exp.argument)};`
+    }
+
+    TryStatement(exp){
+        return `try ${this.gen(exp.block)} ${this.gen(exp.handler)};`
+    }
+
+    CatchClause(exp){
+        return `catch ${this.gen(exp.param)} ${this.gen(exp.body)};`
+    }
+
     ObjectExpression(exp){
         const properties = exp.properties.map(prop => this.gen(prop));
         return `{${properties.join(', ')}}`

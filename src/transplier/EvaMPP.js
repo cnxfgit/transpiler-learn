@@ -23,7 +23,7 @@ class EvaMPP {
 
     saveToFile(filename, code) {
         const out = `
-const {print,spawn,scheduler,sleep} = require("./src/runtime");
+const {print,spawn,scheduler,sleep,NextMatch} = require("./src/runtime");
 ${code}
         `
         fs.writeFileSync(filename, out, 'utf-8')
@@ -254,6 +254,97 @@ ${code}
                 object: this.gen(exp[1]),
                 property: this.gen(exp[2])
             }
+        }
+
+        if (exp[0] === "match") {
+            const value = this.gen(exp[1]);
+            let topLevelTry;
+            let insertBlock;
+            let i = 2;
+
+            do {
+                const [pattern, ifNode] = jsTransform.expressionToMatchPattern(
+                    this.gen(exp[i]),
+                    value
+                );
+
+                const handler = this._toStatement(this.gen(exp[i + 1]))
+
+                const tryBody = [handler]
+                if (pattern == null && ifNode == null) {
+                    insertBlock.body.push(handler);
+                    return topLevelTry;
+                }
+
+                if (ifNode != null) {
+                    tryBody.unshift(ifNode);
+                }
+
+                if (pattern != null) {
+                    const destructVar = {
+                        type: "VariableDeclaration",
+                        declarations: [{
+                            type: "VariableDeclarator",
+                            id: pattern,
+                            init: value
+                        }]
+                    }
+
+                    tryBody.unshift(destructVar)
+                }
+
+                const catchParam = {
+                    type: "Identifier",
+                    name: "e",
+                }
+
+                const nextMatchIf = {
+                    type: "IfStatement",
+                    test: {
+                        type: "BinaryExpression",
+                        left: catchParam,
+                        operator: "!==",
+                        right: {
+                            type: "Identifier",
+                            name: "NextMatch",
+                        }
+                    },
+                    consequent:{
+                        type: "ThrowStatement",
+                        argument: catchParam,
+                    }
+                }
+
+                const tryNode = {
+                    type: "TryStatement",
+                    block: {
+                        type: "BlockStatement",
+                        body: tryBody,
+                    },
+                    handler: {
+                        type: "CatchClause",
+                        param: catchParam,
+                        body: {
+                            type: "BlockStatement",
+                            body: [nextMatchIf]
+                        }
+                    }
+                }
+
+                if (insertBlock != null) {
+                    insertBlock.body.push(tryNode);
+                }
+
+                if (topLevelTry == null) {
+                    topLevelTry = tryNode
+                }
+
+                insertBlock = topLevelTry.handler.body
+
+                i += 2;
+            } while (i < exp.length);
+
+            return topLevelTry;
         }
 
         if (Array.isArray(exp)) {
