@@ -23,7 +23,7 @@ class EvaMPP {
 
     saveToFile(filename, code) {
         const out = `
-const {print,spawn,scheduler,sleep,NextMatch} = require("./src/runtime");
+const {print,spawn,scheduler,sleep,NextMatch,send,receive} = require("./src/runtime");
 ${code}
         `
         fs.writeFileSync(filename, out, 'utf-8')
@@ -181,14 +181,18 @@ ${code}
                 bodyExp[bodyExp.length - 1] = ["return", last]
             }
 
-            const body = this.gen(bodyExp)
-
             const fn = {
                 type: 'FunctionDeclaration',
                 id,
                 params,
-                body
+                body: null
             };
+
+            const prevFn = this._currentFn;
+            this._currentFn = fn
+            fn.body = this.gen(bodyExp)
+
+            this._currentFn = prevFn
 
             this._functions[id.name] = {
                 fn,
@@ -309,7 +313,7 @@ ${code}
                             name: "NextMatch",
                         }
                     },
-                    consequent:{
+                    consequent: {
                         type: "ThrowStatement",
                         argument: catchParam,
                     }
@@ -347,8 +351,51 @@ ${code}
             return topLevelTry;
         }
 
+        if (exp[0] === "receive") {
+            this._currentFn.id.name = `_${this._currentFn.id.name}`
+            this._currentFn.async = true;
+            this._currentFn.generator = true;
+
+            const awaitVar = {
+                type: 'VariableDeclaration',
+                declarations: [
+                    {
+                        type: 'VariableDeclarator',
+                        id: this.gen(exp[1]),
+                        init: {
+                            type: "AwaitExpression",
+                            argument: {
+                                type: "CallExpression",
+                                callee: {
+                                    type: "Identifier",
+                                    name: "receive",
+                                },
+                                arguments: [{type: "ThisExpression"}]
+                            }
+                        }
+                    }
+                ]
+            }
+
+            exp[0] = "match"
+            const matchExp = this.gen(exp);
+            return {
+                type: "BlockStatement",
+                body: [awaitVar, matchExp]
+            }
+        }
+
         if (Array.isArray(exp)) {
-            const fnName = this._toVariableName(exp[0])
+            let fnName = this._toVariableName(exp[0])
+
+            const isRecursiveGenCall = this._currentFn != null &&
+                this._currentFn.generator &&
+                this._currentFn.id.name.slice(1) === fnName;
+
+            if (isRecursiveGenCall) {
+                fnName = this._currentFn.id.name
+            }
+
             const callee = this.gen(fnName)
             const args = exp.slice(1).map(arg => this.gen(arg))
 
@@ -375,6 +422,25 @@ ${code}
                 args[0].name = processName;
             }
 
+            if (isRecursiveGenCall) {
+                return {
+                    type: "YieldExpression",
+                    delegate: true,
+                    argument: {
+                        type: "CallExpression",
+                        callee: {
+                            type: "MemberExpression",
+                            object: callee,
+                            property: {
+                                type: "Identifier",
+                                name: "call",
+                            }
+                        },
+                        arguments: [{type: "ThisExpression", ...args}]
+                    }
+                }
+            }
+
             return {
                 type: 'CallExpression',
                 callee,
@@ -394,7 +460,7 @@ ${code}
     }
 
     _hasBlock(exp) {
-        return exp[0] === 'begin';
+        return exp[0] === 'begin' || exp[0] === "receive";
     }
 
     _isStatement(exp) {
@@ -463,6 +529,8 @@ ${code}
             case "YieldExpression":
             case "ArrayExpression":
             case "MemberExpression":
+            case "AwaitExpression":
+            case "ThisExpression":
                 return {
                     type: "ExpressionStatement",
                     expression

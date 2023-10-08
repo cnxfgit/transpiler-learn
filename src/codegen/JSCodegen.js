@@ -79,6 +79,14 @@ class JSCodegen {
         return `throw ${this.gen(exp.argument)};`
     }
 
+    AwaitExpression(exp){
+        return `await ${this.gen(exp.argument)}`
+    }
+
+    ThisExpression(exp){
+        return `this`;
+    }
+
     TryStatement(exp){
         return `try ${this.gen(exp.block)} ${this.gen(exp.handler)};`
     }
@@ -118,7 +126,9 @@ class JSCodegen {
     }
 
     YieldExpression(exp){
-        return `yield`
+        const delegate = exp.delegate ? '*' : '';
+        const argument = exp.argument ? `${this.gen(exp.argument)}` : '';
+        return `yield${delegate}${argument}`
     }
 
     LogicalExpression(exp) {

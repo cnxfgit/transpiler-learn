@@ -11,6 +11,14 @@ function spawn(fn, ...args) {
     return scheduler.spawn(fn, ...args);
 }
 
+function send(receiver, message) {
+    return scheduler.send(receiver, message);
+}
+
+async function receive(receiver){
+    return await scheduler.receive(receiver);
+}
+
 async function sleep(ms) {
     return scheduler.sleep(ms)
 }
@@ -23,4 +31,6 @@ module.exports = {
     scheduler,
     sleep,
     NextMatch,
+    send,
+    receive,
 }
